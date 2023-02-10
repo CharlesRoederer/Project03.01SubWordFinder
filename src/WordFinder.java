@@ -36,4 +36,6 @@ public interface WordFinder {
      * the credit as specified on the grading rubric.
      */
     boolean inDictionary(String word);
+
+
 }

@@ -32,7 +32,7 @@ public class SubWord implements Comparable<SubWord> {
      * Utility accessor method
      * @return The list of sub words
      */
-    public String getSubWords()	{	return sub1 + " + " + sub2;	}
+    public String getSubWords() {	return sub1 + " + " + sub2;	}
 
     /**
      * Compares two SubWord objects alphabetically A to Z based on rootWord

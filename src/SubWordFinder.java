@@ -1,12 +1,18 @@
 import java.io.File;
-import java.lang.reflect.Array;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
 
+/**
+ * public class for project 3.01
+ * @version 2/10/23
+ * @author 26roederer
+ */
 public class SubWordFinder implements WordFinder    {
     private ArrayList<ArrayList<String>> dictionary;
     private String alpha = "abcdefghijklmnopqrstuvwxyz";
+
 
     public SubWordFinder()  {
         dictionary = new ArrayList<>();
@@ -15,93 +21,6 @@ public class SubWordFinder implements WordFinder    {
         populateDictionary();
     }
 
-    @Override
-    public void populateDictionary() {
-        String file1="";
-        for(int j=0; j<3;j++) {
-            try {
-                Scanner in = new Scanner(new File("all_subwords.txt"));
-                while (in.hasNext()) {
-                    String word = in.nextLine();
-                    int index = alpha.indexOf(word.substring(0, 1));
-                    dictionary.get(index).add(word);
-                }
-                in.close();
-                for (int i = 0; i < dictionary.size(); i++)
-                    Collections.sort(dictionary.get(i));
-
-
-            } catch (Exception e) {
-                System.out.println("Error here: " + e);
-            }
-        }
-    }
-
-    @Override
-    public ArrayList<SubWord> getSubWords() {
-        return null;
-    }
-
-    @Override
-    public boolean inDictionary(String word) {
-        return Collections.binarySearch(dictionary.get(alpha.indexOf(word.substring(0,1))), word) >= 0;
-    }
-
-    class BinarySearch
-    {
-        // Returns index of x if it is present in arr[l..
-        // r], else return -1
-        int binarySearch(ArrayList<String> arr, String l, String r, String x)
-        {
-            if (r.compareToIgnoreCase(l) >=0)
-            {
-                int mid = l + (r.replace(l, )) / 2;
-
-                // If the element is present at the
-                // middle itself
-                if (arr.get(mid).equals(x))
-                    return mid;
-
-                // If element is smaller than mid, then
-                // it can only be present in left subarray
-                if (arr.get(mid).compareToIgnoreCase(x) > 0)
-                    return binarySearch(arr, l, mid - 1, x);
-
-                // Else the element can only be present
-                // in right subarray
-                return binarySearch(arr, mid + 1, r, x);
-            }
-
-            // We reach here when element is not present
-            // in array
-            return -1;
-        }
-    /**
-     * Populates the dictionary from the text file contents
-     * The dictionary object should contain 26 buckets, each
-     * bucket filled with an ArrayList<String>
-     * The String objects in the buckets are sorted A-Z because
-     * of the nature of the text file words.txt
-     */
-    //@Override
-    public void populateDictionary() {
-        try{
-            Scanner in =new Scanner(new File("SCRABBLE_WORDS (1).txt"));
-            while(in.hasNext()){
-                String word=in.nextLine();
-                int index=alpha.indexOf(word.substring(0,1));
-                dictionary.get(index).add(word);
-            }
-            in.close();
-            for (int i=0; i<dictionary.size(); i++)
-                Collections.sort(dictionary.get(i));
-
-
-        }
-        catch(Exception e) {
-            System.out.println("Error here: "+ e);
-        }
-    }
 
 
     /**
@@ -117,8 +36,25 @@ public class SubWordFinder implements WordFinder    {
      * @return An ArrayList containing the SubWord objects
      * pulled from the file words.txt
      */
-
-
+    @Override
+    public ArrayList<SubWord> getSubWords() {
+        ArrayList<SubWord> subwords =new ArrayList<>();
+        for (ArrayList<String> bucket: dictionary){
+            for(String word : bucket){
+                String front= "", back="";
+                for(int i=2; i<word.length()-1;i++){
+                    front =word.substring(0,i);
+                    back=word.substring(i);
+                    //ystem.out.println("DEBUG LINE 43 " + front + " ** " + back);
+                    if (inDictionary(front) && inDictionary(back)){
+                        subwords.add(new SubWord(word, front,back));
+                        //System.out.println("Added " + subwords.get(subwords.size()-1));
+                    }
+                }
+            }
+        }
+        return subwords;
+    }
     /**
      * Look through the entire dictionary object to see if
      * word exists in dictionary
@@ -131,6 +67,76 @@ public class SubWordFinder implements WordFinder    {
      * the credit as specified on the grading rubric.
      */
 
-
+    @Override
+    public boolean inDictionary(String word) {
+        ArrayList<String> bucket = dictionary.get(alpha.indexOf(word.substring(0,1)));
+        //System.out.println("DEBUG: " + alpha.indexOf(word.substring(0,1)));
+        return binarySearch(bucket, 0, bucket.size()-1, word)>=0;
+        //return Collections.binarySearch(bucket, word) >= 0;
     }
+
+    private int binarySearch(ArrayList<String> list, int low, int high, String target){
+        //System.out.println("DEBUG LOW AND HIGH: " + low + " " + high);
+        //System.out.println(list.size());
+        if (low <= high){
+            int mid = (low + high)/2;
+
+            if (list.get(mid).equals(target))
+                return mid;
+            else if (list.get(mid).compareTo(target)<0)
+                return binarySearch(list, mid + 1, high, target);
+
+            else
+                return binarySearch(list, low, mid - 1, target);
+
+
+        }
+        return -1;
+    }
+
+    /**
+     * Populates the dictionary from the text file contents
+     * The dictionary object should contain 26 buckets, each
+     * bucket filled with an ArrayList<String>
+     * The String objects in the buckets are sorted A-Z because
+     * of the nature of the text file words.txt
+     */
+    @Override
+    public void populateDictionary() {
+        String file1="new_scrabble.txt";
+        try {
+            Scanner in = new Scanner(new File(file1));
+            while (in.hasNext()) {
+                String word = in.nextLine();
+                int index = alpha.indexOf(word.substring(0, 1));
+                dictionary.get(index).add(word);
+            }
+            in.close();
+            for (int i = 0; i < dictionary.size(); i++) {
+                Collections.sort(dictionary.get(i));
+                //System.out.println("DEBUG: " + alpha.substring(i, i+1) + " " + dictionary.get(i).size());
+            }
+
+
+        } catch (Exception e) {
+            System.out.println("Error here: " + e);
+        }
+    }
+
+    /**
+     * main method for class for project 3.01
+     * @param args
+     */
+
+    public static void main(String[] args) {
+        SubWordFinder program = new SubWordFinder();
+        ArrayList<SubWord> temp = program.getSubWords();
+        //System.out.println("Size of temp = " + temp.size());
+        System.out.println("* List of all SubWord objects *");
+        for(SubWord sw : temp)
+            System.out.println(sw);
+        System.out.println(temp.size() + " total SubWords");
+    }
+
+
 }
